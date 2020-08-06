@@ -11,6 +11,8 @@ import ctypes.util
 import platform
 import sys
 import time
+import os
+
 
 FETCH_BUFFER_CBK_TYPE = ctypes.CFUNCTYPE(ctypes.c_int,
                                          ctypes.c_char_p)
@@ -29,11 +31,18 @@ class OpenImageDebuggerWindow(object):
         # fixes an issue on Ubuntu machines with nvidia drivers. For more
         # information, please refer to
         # https://github.com/csantosbh/gdb-imagewatch/issues/28
-        ctypes.CDLL(ctypes.util.find_library('GL'), ctypes.RTLD_GLOBAL)
+        # ctypes.CDLL(ctypes.util.find_library('GL'), ctypes.RTLD_GLOBAL)
+
+        os.environ['PATH'] += ';' + script_path
+        lib_path = os.path.join(script_path, OpenImageDebuggerWindow.__get_library_name())
+        print('load library: {}'.format(lib_path))
 
         # Load OpenImageDebugger library and set up its API
-        self._lib = ctypes.cdll.LoadLibrary(
-            script_path + '/' + OpenImageDebuggerWindow.__get_library_name())
+        try:
+            self._lib = ctypes.cdll.LoadLibrary(lib_path)
+        except OSError as e:
+            print('met error: ' + str(e))
+            sys.exit(-1)
 
         # lib OID API
         self._lib.oid_initialize.argtypes = [FETCH_BUFFER_CBK_TYPE, ctypes.py_object]
@@ -90,6 +99,8 @@ class OpenImageDebuggerWindow(object):
             return 'liboidbridge%s.so' % python_version
         elif platform_name == 'darwin':
             return 'liboidbridge%s.dylib' % python_version
+        else:
+            return 'oidbridge%s2.dll' % python_version
 
     def plot_variable(self, requested_symbol):
         """

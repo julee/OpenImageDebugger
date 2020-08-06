@@ -39,5 +39,8 @@ macx {
 linux {
     BRIDGE_INSTALL_FOLDER = $$PREFIX/OpenImageDebugger/
 }
+win32 {
+    BRIDGE_INSTALL_FOLDER =  $$PREFIX/OpenImageDebugger/
+}
 
 include($$PWD/../../resources/deployscripts.pri)

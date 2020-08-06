@@ -33,7 +33,9 @@
 #ifndef OID_API
 #  if __GNUC__ >= 4
 #    define OID_API __attribute__((visibility("default")))
-#  else
+#  elif defined(_WIN32)
+#    define OID_API __declspec(dllexport)
+#else
 #    define OID_API
 #  endif
 #endif

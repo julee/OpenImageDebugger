@@ -24,7 +24,11 @@
  */
 
 #include <signal.h>
+#include <QProcess>
+#if !defined(_WIN32)
 #include <spawn.h>
+#endif
+
 
 #include <deque>
 #include <iostream>
@@ -129,21 +133,33 @@ class OidBridge
         string windowBinaryPath = this->oid_path_ + "/oidwindow";
         string portStdString    = std::to_string(server_.serverPort());
 
-        auto packed_parameters =
-            pack_strings({"-style", "fusion", "-p", portStdString});
-        char* argv[] = {packed_parameters[0].data(),
-                        packed_parameters[1].data(),
-                        packed_parameters[2].data(),
-                        packed_parameters[3].data(),
-                        nullptr};
-        extern char** environ;
+        if (useQprocess_) {
+            QStringList arguments;
+            arguments << "-style"
+                    << "fusion"
+                    << "-p" << QString::number(server_.serverPort());
+            process_.setProcessChannelMode(QProcess::MergedChannels);
+            process_.start(QString::fromStdString(windowBinaryPath), arguments);
+        }
+        else {
+#if !defined(_WIN32)
+            auto packed_parameters =
+                pack_strings({"-style", "fusion", "-p", portStdString});
+            char* argv[] = {packed_parameters[0].data(),
+                            packed_parameters[1].data(),
+                            packed_parameters[2].data(),
+                            packed_parameters[3].data(),
+                            nullptr};
+            extern char** environ;
 
-        posix_spawn(&ui_proc_id_,
-                    windowBinaryPath.c_str(),
-                    nullptr, // TODO consider passing something here
-                    nullptr, // and here
-                    argv,
-                    environ);
+            posix_spawn(&ui_proc_id_,
+                        windowBinaryPath.c_str(),
+                        nullptr, // TODO consider passing something here
+                        nullptr, // and here
+                        argv,
+                        environ);
+#endif
+        }
 
         wait_for_client();
 
@@ -157,8 +173,19 @@ class OidBridge
 
     bool is_window_ready()
     {
+        if (useQprocess_) {
+            bool ready = client_ != nullptr && process_.processId() != 0;
+            if (ready) {
+               process_.kill();
+            }
+            return ready;
+        }
+#if !defined(_WIN32)
         return client_ != nullptr && ui_proc_id_ != 0 &&
                kill(static_cast<pid_t>(ui_proc_id_), 0) == 0;
+#else
+        return false;
+#endif
     }
 
     deque<string> get_observed_symbols()
@@ -232,11 +259,24 @@ class OidBridge
 
     ~OidBridge()
     {
-        kill(ui_proc_id_, SIGKILL);
+        if (useQprocess_) {
+            process_.kill();
+        }
+        else {
+#if !defined(_WIN32)
+            kill(ui_proc_id_, SIGKILL);
+#endif
+        }
     }
 
   private:
+#if _WIN32
+    bool useQprocess_ = true;
+#else
+    bool useQprocess_ = false;
+#endif
     pid_t ui_proc_id_;
+    QProcess process_;
     QTcpServer server_;
     QTcpSocket* client_;
     string oid_path_;

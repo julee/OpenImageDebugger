@@ -8,10 +8,14 @@ isEmpty(PREFIX) {
   PREFIX = /usr/local
 }
 
-QMAKE_CXXFLAGS += \
-  -fPIC \
-  -fvisibility=hidden \
-  -pthread
+!win32 {
+  QMAKE_CXXFLAGS += \
+    -fPIC \
+    -fvisibility=hidden \
+    -pthread
+}
+
+QMAKE_CXXFLAGS += -DNOMINMAX -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_USE_MATH_DEFINES 
 
 CONFIG += $$BUILD_MODE
 

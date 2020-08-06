@@ -26,7 +26,7 @@
 #include "gl_canvas.h"
 
 #include "main_window/main_window.h"
-#include "ui/gl_text_renderer.h"
+#include "gl_text_renderer.h"
 #include "visualization/components/camera.h"
 #include "visualization/game_object.h"
 
@@ -36,7 +36,7 @@ using namespace std;
 
 GLCanvas::GLCanvas(QWidget* parent)
     : QOpenGLWidget(parent)
-    , QOpenGLFunctions()
+    , QOpenGLFunctions_3_3_Core()
     , mouse_x_(0)
     , mouse_y_(0)
     , initialized_(false)
@@ -220,11 +220,11 @@ void GLCanvas::set_main_window(MainWindow* mw)
 }
 
 
-void list_gl_extensions()
-{
-    GLint num_exts = 0;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &num_exts);
+// void list_gl_extensions()
+// {
+//     GLint num_exts = 0;
+//     glGetIntegerv(GL_NUM_EXTENSIONS, &num_exts);
 
-    cout << "Supported OpenGL extensions:" << glGetString(GL_EXTENSIONS)
-         << endl;
-}
+//     cout << "Supported OpenGL extensions:" << glGetString(GL_EXTENSIONS)
+//          << endl;
+// }

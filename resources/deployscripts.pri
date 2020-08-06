@@ -18,6 +18,11 @@ linux {
     install_debugger_scripts.path = $$PREFIX/OpenImageDebugger/
 }
 
+win32 {
+    install_matlab_scripts.path = $$PREFIX/OpenImageDebugger/
+    install_debugger_scripts.path = $$PREFIX/OpenImageDebugger/
+}
+
 install_matlab_scripts.CONFIG += no_check_exist
 install_debugger_scripts.CONFIG += no_check_exist
 
